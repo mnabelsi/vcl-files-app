@@ -1,0 +1,16 @@
+node_modules
+.next
+dist
+build
+.turbo
+*.log
+.env
+.env.local
+.env.*.local
+!.env.example
+.DS_Store
+coverage
+.vscode
+.idea
+tmp
+.pnpm-store

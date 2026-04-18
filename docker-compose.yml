@@ -1,0 +1,92 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vcl}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vcl}
+      POSTGRES_DB: ${POSTGRES_DB:-vcl}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vcl}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      OLLAMA_URL: ${OLLAMA_URL}
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL}
+      OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL}
+      OLLAMA_EMBED_DIM: ${OLLAMA_EMBED_DIM}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_HAIKU_MODEL: ${ANTHROPIC_HAIKU_MODEL}
+      ANTHROPIC_SONNET_MODEL: ${ANTHROPIC_SONNET_MODEL}
+      ANTHROPIC_OPUS_MODEL: ${ANTHROPIC_OPUS_MODEL}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    # For local dev: reach Ollama running on the host machine.
+    # On Coolify, remove this and attach the service to the Ollama network instead.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      APP_USER_EMAIL: ${APP_USER_EMAIL}
+      APP_USER_PASSWORD_HASH: ${APP_USER_PASSWORD_HASH}
+      MS_CLIENT_ID: ${MS_CLIENT_ID}
+      MS_TENANT_ID: ${MS_TENANT_ID}
+      MS_REDIRECT_URI: ${MS_REDIRECT_URI}
+      OLLAMA_URL: ${OLLAMA_URL}
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL}
+      OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL}
+      OLLAMA_EMBED_DIM: ${OLLAMA_EMBED_DIM}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_HAIKU_MODEL: ${ANTHROPIC_HAIKU_MODEL}
+      ANTHROPIC_SONNET_MODEL: ${ANTHROPIC_SONNET_MODEL}
+      ANTHROPIC_OPUS_MODEL: ${ANTHROPIC_OPUS_MODEL}
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  pg-data:
