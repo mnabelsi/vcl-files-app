@@ -19,9 +19,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = String(creds?.password ?? '');
         const expectedEmail = (process.env.APP_USER_EMAIL ?? '').toLowerCase();
         const hash = process.env.APP_USER_PASSWORD_HASH ?? '';
+        console.log('[auth] email match:', email === expectedEmail, '| hash length:', hash.length, '| hash prefix:', hash.substring(0, 4));
         if (!expectedEmail || !hash) return null;
         if (email !== expectedEmail) return null;
         const ok = await bcrypt.compare(password, hash);
+        console.log('[auth] bcrypt result:', ok);
         if (!ok) return null;
         return { id: 'single-user', email: expectedEmail, name: 'Owner' };
       },

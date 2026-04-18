@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"import\\('bcryptjs'\\).then\\(b=>console.log\\(b.default.hashSync\\('123456',10\\)\\)\\)\")",
+      "Bash(node -e \"const b = require\\('bcryptjs'\\); console.log\\(b.hashSync\\('123456', 10\\)\\);\")",
+      "Bash(pnpm install *)",
+      "Bash(npx bcryptjs *)"
+    ]
+  }
+}
