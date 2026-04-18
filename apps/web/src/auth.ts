@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 // Single-user credentials auth. APP_USER_EMAIL + APP_USER_PASSWORD_HASH are the
 // only valid login; no DB user table.
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
   providers: [
